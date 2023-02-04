@@ -13,7 +13,7 @@ customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-b
 class Root:
 
     def position_button_event(self):
-        self.capture_on_right = not self.capture_on_right
+        self.capture_direction.set("Left" if self.capture_direction.get() == "Right" else "Right")
 
     def __init__(self):
         
@@ -28,6 +28,9 @@ class Root:
         self.processed_string = tkinter.StringVar()
         self.raw_string = tkinter.StringVar()
         self.latest_char = tkinter.StringVar()
+
+        self.pred_label = tkinter.StringVar()
+        self.pred_score = tkinter.StringVar()
 
         # Create a label to display the webcam feed
         self.webcam_label = customtkinter.CTkLabel(self.window, text="")
@@ -51,11 +54,11 @@ class Root:
         # Initialize the time of the last captured frame
         self.last_captured_at = 0
 
-        self.capture_on_right = True #Default: right side of the screen
+        self.capture_direction = tkinter.StringVar(value="Right") #Default: right side of the screen
         
         self.is_captured = False
 
-        self.position_button = customtkinter.CTkButton(master=self.window, text="Toggle Left/Right", command=self.position_button_event)
+        self.position_button = customtkinter.CTkButton(master=self.window, textvariable=self.capture_direction, command=self.position_button_event)
         self.position_button.pack(padx=25,pady=(0,25),side="top", anchor="nw")
 
         self.textbox_label = customtkinter.CTkLabel(self.window,
@@ -71,13 +74,15 @@ class Root:
 
 
     @staticmethod
-    def get_capture_zone_position(parent_height, is_right):
+    def get_capture_zone_position(parent_height, direction):
         # returns x1, y1, x2,y2
-        if is_right:
-            return int(0.5 * parent_height), 10, parent_height - 10, int(0.5 * parent_height)
+        if direction=="Right":
+            return int(0.6 * parent_height), 10, parent_height - 10, int(0.4 * parent_height)
         
+        elif direction=="Left":
+            return 10, 10, int(0.4 * parent_height), int(0.4 * parent_height)
         else:
-            return 10, 10, int(0.5 * parent_height), int(0.5 * parent_height)
+            return 0,0,0,0
 
     def update_prediction(self, char):
         print(self.curr_string.get())
@@ -122,7 +127,7 @@ class Root:
         _, frame = self.webcam.read()
         frame = cv2.flip(frame, 1)
         
-        x1, y1, x2, y2 = self.get_capture_zone_position(frame.shape[1], self.capture_on_right)
+        x1, y1, x2, y2 = self.get_capture_zone_position(frame.shape[1], self.capture_direction.get())
         cv2.rectangle(frame, (x1-1,y1-1), (x2+1,y2+1), self.get_capture_zone_border_color() ,2)
         
         cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
@@ -135,13 +140,12 @@ class Root:
         cap_img = cv2image[y1:y2,x1:x2]
 
 
-        # Save the frame every 1000 milliseconds
         current_time = time.time()
-        if current_time - self.last_updated_at >= 1:
+        if current_time - self.last_updated_at >= 1.5:
             self.predict(cap_img)
             self.last_updated_at = current_time
 
-        if current_time - self.last_captured_at >= 0.5:
+        if current_time - self.last_captured_at >= 0.3:
             self.is_captured = False
             
         self.window.after(10, self.update_frame)
