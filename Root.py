@@ -2,10 +2,12 @@ import tkinter
 import cv2
 import PIL.Image, PIL.ImageTk
 import time
-from string import ascii_uppercase
+from pathlib import Path
 
 import customtkinter
 import random
+
+from src.custom_nodes.model import classifier
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
@@ -29,8 +31,8 @@ class Root:
         self.raw_string = tkinter.StringVar()
         self.latest_char = tkinter.StringVar()
 
-        self.pred_label = tkinter.StringVar()
-        self.pred_score = tkinter.StringVar()
+        self.curr_pred_label = tkinter.StringVar()
+        self.curr_pred_score = tkinter.StringVar()
 
         # Create a label to display the webcam feed
         self.webcam_label = customtkinter.CTkLabel(self.window, text="")
@@ -48,6 +50,9 @@ class Root:
         self.webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
+        self.model_node = classifier.Node(pkd_base_dir=Path.cwd() / "src" / "custom_nodes")
+
+
         # Initialize the time of the last saved frame
         self.last_updated_at = 0
 
@@ -60,6 +65,9 @@ class Root:
 
         self.position_button = customtkinter.CTkButton(master=self.window, textvariable=self.capture_direction, command=self.position_button_event)
         self.position_button.pack(padx=25,pady=(0,25),side="top", anchor="nw")
+
+        self.prediction_button = customtkinter.CTkButton(master=self.window, textvariable=self.curr_pred_label)
+        self.prediction_button.pack(padx=25,pady=(0,25),side="top", anchor="nw")
 
         self.textbox_label = customtkinter.CTkLabel(self.window,
                  textvariable = self.curr_string, height=60, width=120)
@@ -84,7 +92,23 @@ class Root:
         else:
             return 0,0,0,0
 
-    def update_prediction(self, char):
+    def predict(self, img):
+        input_dict = {'img':img}
+
+        res = self.model_node.run(input_dict)
+        self.update_prediction(res['pred_label'], res['pred_score'])
+
+    def update_prediction(self, label, score):
+        
+        if label == 'BLANK':
+            self.curr_pred_label.set(' ')
+        else:
+            self.curr_pred_label.set(label)
+        
+        self.curr_pred_score.set('%.2f' % score)
+
+
+    '''def update_prediction(self, label, score):
         print(self.curr_string.get())
         if char=="" and self.latest_string.get() == " ":
             return
@@ -93,7 +117,7 @@ class Root:
             self.curr_string.set(self.curr_string.get() + char if self.curr_string.get() else char)
         else:
             self.latest_string=char
-            self.curr_string.set(self.curr_string.get() + char if self.curr_string.get() else char)
+            self.curr_string.set(self.curr_string.get() + char if self.curr_string.get() else char)'''
 
     def gc(self, raw):
         return "<" +  raw + "/>"
@@ -111,13 +135,8 @@ class Root:
         elif self.processed_string.get() == self.curr_string.get():
             self.curr_string.set(self.raw_string.get())
 
-    def predict(self, img):
-        result = ascii_uppercase[random.randint(0,25)]
-        print(result)
-        self.update_prediction(result)
-
-
-        if result:
+    def capture_result(self):
+        if self.curr_pred_label.get() and self.curr_pred_label.get() != 'BLANK':
             self.is_captured = True
             self.last_captured_at = time.time()
 
@@ -138,11 +157,13 @@ class Root:
         self.webcam_label.configure(image=imgtk)
 
         cap_img = cv2image[y1:y2,x1:x2]
+        
+        self.predict(cap_img)
 
 
         current_time = time.time()
         if current_time - self.last_updated_at >= 1.5:
-            self.predict(cap_img)
+            
             self.last_updated_at = current_time
 
         if current_time - self.last_captured_at >= 0.3:
