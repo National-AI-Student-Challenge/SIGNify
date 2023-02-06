@@ -53,6 +53,10 @@ The gestures that were trained for this project are depicted in the image provid
 14.playsound -> pip install playsound
 
 15.SpeechRecognition -> pip3 install SpeechRecognition pydub
+
+16.Rapid Automatic Keyword Extraction algorithm -> pip install rake-nltk
+
+17.Natural Language Toolkit -> pip install nltk
 ```
 </div><br/>
 
