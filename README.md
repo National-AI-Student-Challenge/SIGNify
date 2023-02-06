@@ -28,6 +28,10 @@ Here is a short demonstration of tha application:
 <br/>
 
 ![Alt Text](demo.gif)
+
+<p align="center">
+  <img src="demo.gif" alt="animated" />
+</p>
 <br/>
 
 ## Libraries Requirements -(Requires the latest pip version to install all the packages)
