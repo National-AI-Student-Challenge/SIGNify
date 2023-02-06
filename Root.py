@@ -18,6 +18,7 @@ class Root:
         self.capture_direction.set("Left" if self.capture_direction.get() == "Right" else "Right")
 
     def __init__(self):
+        
 
         # Configs for texting and debugging
         self.cv_enabled = False
@@ -39,7 +40,9 @@ class Root:
         self.webcam_label = customtkinter.CTkLabel(self.window, text="")
         self.webcam_label.pack(padx=25,pady=(25,10),side="top", anchor="nw")
 
-        
+        if not self.cv_enabled:
+            self.test_string = "_HI_HOW_ARE_YOU"
+            self.test_string_pos = -1
 
         self.SC = SmartCorrect.SmartCorrect(self.sc_enabled)
 
@@ -83,6 +86,9 @@ class Root:
         # Trace curr_string
         self.input_string.trace_add("write",self.update_curr_from_input)
 
+        # Chat Interface
+        self.chat_frame = customtkinter.CTkFrame(master=self.window, width=440, height=576)
+        self.chat_frame.place(x=584, y=0)
         # Start updating the GUI
         self.update_frame()
 
@@ -124,7 +130,7 @@ class Root:
 
     def update_prediction(self, label, score):
         
-        if label == 'BLANK':
+        if label == '_':
             self.curr_pred_label.set(' ')
         else:
             self.curr_pred_label.set(label)
@@ -132,7 +138,7 @@ class Root:
         self.curr_pred_score.set('%.2f' % score)
 
     def sc(self, raw):
-        res = self.SC.run([raw])
+        res = self.SC.run([raw.lower()])
         if res:
             return res[0]
         return raw
@@ -145,18 +151,30 @@ class Root:
         self.update_input_from_curr()
 
     def capture_result(self):
-        if self.curr_pred_label.get() and self.curr_pred_label.get() != 'BLANK':
-            self.latest_char = self.curr_pred_label.get()
+        label = self.curr_pred_label.get()
+
+        if not self.cv_enabled:
+            self.test_string_pos += 1
+            if self.test_string_pos >= len(self.test_string):
+                label = "_"
+            else:
+                label = self.test_string[self.test_string_pos]
+            
+
+        if label and label != '_':
+            self.latest_char = label
             self.curr_string.set(self.curr_string.get() + self.latest_char)
             self.update_input_from_curr()
             self.is_captured = True
             self.last_captured_at = time.time()
-        elif self.curr_pred_label.get():
+        elif label:
             if self.latest_char == ' ':
                 return
-            self.latest_char = self.curr_pred_label.get()
+            self.latest_char = ' '
             self.curr_string.set(self.curr_string.get() + self.latest_char)
             self.update_input_from_curr()
+            self.is_captured = True
+            self.last_captured_at = time.time()
         else:
             return
 

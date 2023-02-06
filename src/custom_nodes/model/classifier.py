@@ -14,9 +14,11 @@ class Node(AbstractNode):
     def __init__(self, enabled, config: Dict[str, Any] = None, **kwargs: Any) -> None:
         super().__init__(config, node_path=__name__, **kwargs)
         self.enabled = enabled
+        self.class_label_map = ['A', 'B','C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+
         if self.enabled:
                 self.baseline_model = tf.keras.models.load_model("models/model.h5")
-        self.class_label_map = ['A', 'B','C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+        
 
     def run(self, inputs: Dict[str, Any]) -> Dict[str, Any]:  # type: ignore
 
@@ -45,5 +47,6 @@ class Node(AbstractNode):
                         "pred_score": 100.0 * np.max(scores),
                 }
         
-        return {"pred_label": "",
+        return {"pred_label": "_",
                 "pred_score": 0}
+        
