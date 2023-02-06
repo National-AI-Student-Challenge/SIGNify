@@ -21,7 +21,7 @@ The gestures that were trained for this project are depicted in the image provid
 <hr>
 <br/>
 
-<div style="background-color: rgb(211,211,211);">
+<div style="background-color: rgb(50, 50, 60);">
 
 ``` python
 1.Lastest pip -> pip install --upgrade pip
@@ -54,4 +54,14 @@ The gestures that were trained for this project are depicted in the image provid
 
 15.SpeechRecognition -> pip3 install SpeechRecognition pydub
 ```
+</div><br/>
+
+## Running the Project
+<hr><br/>
+
+<div style="background-color: rgb(50, 50, 60);">
+
+``` python
+python /path/to/the/Root.py
+``` 
 </div>
