@@ -9,7 +9,7 @@ SIGNify is an AI-powered app for the hearing impaired, as part of the National A
 
 ## Project Demo Link
 <hr> 
-[SIGNify Demo Video](https://www.youtube.com/watch?v=ncwKXnMxhLA)
+https://www.youtube.com/watch?v=ncwKXnMxhLA
 
 <br/>
 
@@ -59,11 +59,11 @@ The gestures that were trained for this project are depicted in the image provid
 
 14.playsound -> pip install playsound
 
-15.SpeechRecognition -> pip3 install SpeechRecognition pydub
+15.speechRecognition -> pip3 install SpeechRecognition pydub
 
-16.Rapid Automatic Keyword Extraction algorithm -> pip install rake-nltk
+16.rapid automatic keyword extraction algorithm -> pip install rake-nltk
 
-17.Natural Language Toolkit -> pip install nltk
+17.natural language toolkit -> pip install nltk
 ```
 </div><br/>
 
