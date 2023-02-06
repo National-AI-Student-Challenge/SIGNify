@@ -65,13 +65,4 @@ class ABSA:
         print(post_outputs)
         return post_outputs
 
-absa = ABSA()
 
-
-
-absa.run([
-            {
-                "aspects":["I'm going to fuck you up"],
-                "sentence":["I'm going to fuck you up"]
-            }
-        ])

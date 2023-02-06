@@ -5,9 +5,10 @@ import time
 from pathlib import Path
 
 import customtkinter
+import random
 
 from src.custom_nodes.model import classifier
-from sgnlp_workflow import SmartCorrect
+from sgnlp_workflow import SmartCorrect, SA, ABSA
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
@@ -18,11 +19,11 @@ class Root:
         self.capture_direction.set("Left" if self.capture_direction.get() == "Right" else "Right")
 
     def __init__(self):
-        
 
-        # Configs for texting and debugging
+        # Configs for testing and debugging
         self.cv_enabled = False
         self.sc_enabled = False
+        self.sa_enabled = True
 
         self.window = customtkinter.CTk()
 
@@ -36,6 +37,10 @@ class Root:
         self.curr_pred_label = tkinter.StringVar()
         self.curr_pred_score = tkinter.StringVar()
 
+        self.curr_sentiment = tkinter.StringVar()
+        self.curr_sentiment_score = tkinter.DoubleVar()
+        self.sentiment_str = tkinter.StringVar()
+
         # Create a label to display the webcam feed
         self.webcam_label = customtkinter.CTkLabel(self.window, text="")
         self.webcam_label.pack(padx=25,pady=(25,10),side="top", anchor="nw")
@@ -45,6 +50,7 @@ class Root:
             self.test_string_pos = -1
 
         self.SC = SmartCorrect.SmartCorrect(self.sc_enabled)
+        self.SA = SA.SA(self.sa_enabled)
 
         # Initialize the webcam
         self.webcam = cv2.VideoCapture(0)
@@ -68,13 +74,15 @@ class Root:
         self.is_captured = False
 
         self.position_button = customtkinter.CTkButton(master=self.window, textvariable=self.capture_direction, command=self.position_button_event)
-        self.position_button.pack(padx=25,pady=(0,25),side="top", anchor="nw")
+        self.position_button.pack(padx=25,pady=(0,25),side="left",anchor='nw')
+        self.sentiment_button = customtkinter.CTkButton(master=self.window, text="Sentiment: " ,textvariable=self.sentiment_str, width=200)
+        self.sentiment_button.pack(padx=(0,25),pady=(0,25),side="left",anchor='nw')
 
         
 
         self.textbox_entry = customtkinter.CTkEntry(self.window,
                  textvariable = self.input_string, height=40, width=480, fg_color="white", border_width=2, border_color="gray50")
-        self.textbox_entry.pack(padx=25,pady=(0,25),side="top", anchor="nw")
+        self.textbox_entry.place(x=25, y=460)
 
         self.gc_button = customtkinter.CTkButton(master=self.window, text="Smart Correct", command=self.process_string)
         self.send_button = customtkinter.CTkButton(master=self.window, text="Send", command=self.send_message)
@@ -136,6 +144,8 @@ class Root:
         s = self.input_string.get()
         print(s)
         self.curr_string.set(s)
+        self.update_sentiment()
+
         print(self.curr_string.get())
 
     def get_capture_zone_border_color(self):
@@ -169,6 +179,14 @@ class Root:
         
         self.curr_pred_score.set('%.2f' % score)
 
+    def update_sentiment(self):
+        label, score = self.SA.run(self.curr_string.get())
+        self.curr_sentiment.set(label)
+        self.curr_sentiment_score.set(str(score))
+        self.sentiment_str.set(f"{self.curr_sentiment.get()} ({str(self.curr_sentiment_score.get())}%)")
+
+        self.sentiment_button.configure(fg_color="green" if label=='POSITIVE' else "red")
+
     def sc(self, raw):
         res = self.SC.run([raw.lower()])
         if res:
@@ -181,6 +199,7 @@ class Root:
         processed = self.sc(self.curr_string.get())
         self.curr_string.set(processed)
         self.update_input_from_curr()
+        self.update_sentiment()
 
     def capture_result(self):
         label = self.curr_pred_label.get()
@@ -197,6 +216,8 @@ class Root:
             self.latest_char = label
             self.curr_string.set(self.curr_string.get() + self.latest_char)
             self.update_input_from_curr()
+            self.update_sentiment()
+
             self.is_captured = True
             self.last_captured_at = time.time()
         elif label:
@@ -205,6 +226,8 @@ class Root:
             self.latest_char = ' '
             self.curr_string.set(self.curr_string.get() + self.latest_char)
             self.update_input_from_curr()
+            self.update_sentiment()
+
             self.is_captured = True
             self.last_captured_at = time.time()
         else:
