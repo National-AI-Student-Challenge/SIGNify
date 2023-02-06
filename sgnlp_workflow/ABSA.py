@@ -1,41 +1,51 @@
-from sgnlp.models.sentic_gcn import (
-    SenticGCNBertTokenizer,
-    SenticGCNBertEmbeddingConfig,
-    SenticGCNBertEmbeddingModel,
-    SenticGCNBertModel,
-    SenticGCNBertPreprocessor,
-    SenticGCNBertConfig,
-    SenticGCNBertPostprocessor,
+from sgnlp.models.sentic_gcn import(
+    SenticGCNConfig,
+    SenticGCNModel,
+    SenticGCNEmbeddingConfig,
+    SenticGCNEmbeddingModel,
+    SenticGCNTokenizer,
+    SenticGCNPreprocessor,
+    SenticGCNPostprocessor,
+    download_tokenizer_files,
 )
 
 class ABSA:
-    def __init__(self):
-        # Create tokenizer
-        self.tokenizer = SenticGCNBertTokenizer.from_pretrained("bert-base-uncased")
+    def __init__(self, enabled):
+        self.enabled = enabled
 
-        # Create embedding model
-        self.embed_config = SenticGCNBertEmbeddingConfig.from_pretrained("bert-base-uncased")
-        self.embed_model = SenticGCNBertEmbeddingModel.from_pretrained("bert-base-uncased", config=self.embed_config)
+        if self.enabled:
 
-        # Create preprocessor
-        self.preprocessor = SenticGCNBertPreprocessor(
-            tokenizer=self.tokenizer,
-            embedding_model=self.embed_model,
-            senticnet="https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticnet.pickle",
-            device="cpu",
-        )
+            
 
-        # Create postprocessor
-        self.postprocessor = SenticGCNBertPostprocessor()
+            download_tokenizer_files(
+                "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn_tokenizer/",
+                "senticgcn_tokenizer")
 
-        # Load model
-        self.config = SenticGCNBertConfig.from_pretrained(
-            "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn_bert/config.json"
-        )
+            self.tokenizer = SenticGCNTokenizer.from_pretrained("senticgcn_tokenizer")
 
-        self.model = SenticGCNBertModel.from_pretrained(
-            "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn_bert/pytorch_model.bin", config=self.config
-        )
+            self.config = SenticGCNConfig.from_pretrained(
+                "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn/config.json"
+            )
+            self.model = SenticGCNModel.from_pretrained(
+                "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn/pytorch_model.bin",
+                config=self.config
+            )
+
+            self.embed_config = SenticGCNEmbeddingConfig.from_pretrained(
+                "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn_embedding_model/config.json"
+            )
+
+            self.embed_model = SenticGCNEmbeddingModel.from_pretrained(
+                "https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticgcn_embedding_model/pytorch_model.bin",
+                config=self.embed_config
+            )
+
+            self.preprocessor = SenticGCNPreprocessor(
+                tokenizer=self.tokenizer, embedding_model=self.embed_model,
+                senticnet="https://storage.googleapis.com/sgnlp/models/sentic_gcn/senticnet.pickle",
+                device="cpu")
+
+            self.postprocessor = SenticGCNPostprocessor()
 
     def run(self, inputs):
         '''
@@ -56,13 +66,17 @@ class ABSA:
         ]
         '''
 
-        
-        processed_inputs, processed_indices = self.preprocessor(inputs)
-        outputs = self.model(processed_indices)
+        if self.enabled:
+            processed_inputs, processed_indices = self.preprocessor(inputs)
+            outputs = self.model(processed_indices)
 
-        # Postprocessing
-        post_outputs = self.postprocessor(processed_inputs=processed_inputs, model_outputs=outputs)
-        print(post_outputs)
-        return post_outputs
+            # Postprocessing
+            post_outputs = self.postprocessor(processed_inputs=processed_inputs, model_outputs=outputs)
+            print(post_outputs)
+            return post_outputs
+        return ["</>"]
+    
+
+
 
 
