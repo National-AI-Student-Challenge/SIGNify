@@ -8,7 +8,7 @@ import customtkinter
 import random
 
 from src.custom_nodes.model import classifier
-from sgnlp_workflow import SmartCorrect, SA, ABSA
+from sgnlp_workflow import SmartCorrect, SA, ABSA,AspectExtractor
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
@@ -21,7 +21,7 @@ class Root:
     def __init__(self):
 
         # Configs for testing and debugging
-        self.cv_enabled = False
+        self.cv_enabled = True
         self.sc_enabled = True
         self.sa_enabled = True
 
@@ -51,6 +51,9 @@ class Root:
 
         self.SC = SmartCorrect.SmartCorrect(self.sc_enabled)
         self.SA = SA.SA(self.sa_enabled)
+        self.ABSA = ABSA.ABSA(self.sa_enabled)
+
+        self.AE = AspectExtractor.AspectExtractor()
 
         # Initialize the webcam
         self.webcam = cv2.VideoCapture(0)
@@ -123,8 +126,36 @@ class Root:
     def user_option_callback(self,choice):
         self.user.set(choice)
 
+    def absa(self):
+        text = self.curr_string.get()
+        aspects = self.AE.run(text)
+        print(aspects)
+        if len(aspects>2):
+            aspects = aspects[:2] # Maximum 2 aspects
+        inputs = [{
+            "aspects":aspects,
+            "sentence":text
+        }]
+
+        output = self.ABSA.run(inputs)[0]
+        sentence = output['sentence']
+        aspects_pos = output['aspect']
+        labels = output['label']
+        print(sentence)
+        print(aspects_pos)
+        print(labels)
+
+
+
+
+
+        
+
+
+
     def send_message(self,event = None):
-        message = self.user.get() + ": " + self.curr_string.get()
+        curr_string = self.absa()
+        message = self.user.get() + ": " + curr_string
         if self.user.get() == "User 1":
             user1_bubble = customtkinter.CTkLabel(self.msg_frame, text= message, width=100,fg_color=("lightgreen", "gray75"),font=("Helvetica", 12), corner_radius=10)
             user1_bubble.pack(side="top", pady=(0,10), anchor="w")
@@ -241,7 +272,6 @@ class Root:
         cv2.rectangle(frame, (x1-1,y1-1), (x2+1,y2+1), self.get_capture_zone_border_color() ,2)
         
         cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-        print(cv2image.shape)
 
         img = PIL.Image.fromarray(cv2image)
         imgtk = PIL.ImageTk.PhotoImage(image=img)
@@ -267,4 +297,6 @@ class Root:
 
 
 # Run the GUI loop
+time.sleep(5)
+print("end sleep")
 (Root()).window.mainloop()
