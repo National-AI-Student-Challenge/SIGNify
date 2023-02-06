@@ -22,7 +22,12 @@ The main focus of this project is to create a model that can accurately recogniz
 The gestures that were trained for this project are depicted in the image provided below.<br/><br/>
 ![Alternate image text](https://t4.ftcdn.net/jpg/03/60/42/61/360_F_360426181_xubOrGR3vGFq8C2K2xpamRsJujyrCPvz.jpg)
 
+<br/>
 
+Here is a short demonstration of tha application:
+<br/>
+![Alt Text](demo.gif)
+<br/>
 
 ## Libraries Requirements -(Requires the latest pip version to install all the packages)
 <hr>
