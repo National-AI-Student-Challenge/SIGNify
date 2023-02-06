@@ -3,17 +3,16 @@ import customtkinter as ctk
 import datetime
 
 font_tuple = ("Helvetica", 18)
-current_time = datetime.datetime.now().strftime("%H:%M")
 
 #Defining the send message function
 def send_message(event = None):
     message = user_var.get() + ": " + message_entry.get()
     if user_var.get() == "User 1":
-        user1_bubble = ctk.CTkLabel(user1_frame, text= current_time + "  " + message, anchor="w", width=100,fg_color=("lightgreen", "gray75"),font=("Helvetica", 12), corner_radius=10)
-        user1_bubble.pack(side="top", pady=10, anchor="w")
+        user1_bubble = ctk.CTkLabel(user_frame, text= message, width=100,fg_color=("lightgreen", "gray75"),font=("Helvetica", 12), corner_radius=10)
+        user1_bubble.pack(side="top", pady=(0,10), anchor="w")
     else:
-        user2_bubble = ctk.CTkLabel(user2_frame, text=current_time + "  " + message, fg_color=("lightblue", "gray75"), font=("Helvetica", 12),anchor="e", width=100,corner_radius=10)
-        user2_bubble.pack(side="top", pady=10, anchor="e")
+        user2_bubble = ctk.CTkLabel(user_frame, text= message, fg_color=("lightblue", "gray75"), font=("Helvetica", 12), width=100,corner_radius=10)
+        user2_bubble.pack(side="top", pady=(0,10), anchor="w")
     message_entry.delete(0, ctk.END)
     print(user_var.get())
 
@@ -26,11 +25,10 @@ root.title("Chatbox")
 ctk.set_appearance_mode("blue")
 
 #Defining the frame on the left and the right to hold the messagess.
-user1_frame = ctk.CTkFrame(root,corner_radius=30, fg_color= "transparent")
-user1_frame.pack(side="left", pady=100, anchor="w")
+user_frame = ctk.CTkFrame(root, fg_color= "transparent", height=450)
+user_frame.pack_propagate(0)
+user_frame.pack(padx = 25, pady = (10,0), side="left", anchor="nw")
 
-user2_frame = ctk.CTkFrame(root, corner_radius=30, fg_color= "transparent")
-user2_frame.pack(side="right", pady=100, anchor="e")
 
 
 user_var = ctk.StringVar()
@@ -48,9 +46,9 @@ def optionmenu_callback(choice):
     user_var.set(choice)
 
 combobox = ctk.CTkOptionMenu(master=root,
-                                    width = 200,
-                                    height = 50,
-                                    font = font_tuple,
+                                    width = 100,
+                                    height = 40,
+                                    font = ("Helvetica", 16),
                                     values=["User 1", "User 2"],
                                     command=optionmenu_callback,
                                     variable=optionmenu_var)

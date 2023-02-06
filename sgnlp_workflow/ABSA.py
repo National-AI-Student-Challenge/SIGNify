@@ -55,14 +55,23 @@ class ABSA:
             },
         ]
         '''
+
+        
         processed_inputs, processed_indices = self.preprocessor(inputs)
         outputs = self.model(processed_indices)
 
         # Postprocessing
         post_outputs = self.postprocessor(processed_inputs=processed_inputs, model_outputs=outputs)
+        print(post_outputs)
         return post_outputs
 
+absa = ABSA()
 
 
 
-
+absa.run([
+            {
+                "aspects":["I'm going to fuck you up"],
+                "sentence":["I'm going to fuck you up"]
+            }
+        ])

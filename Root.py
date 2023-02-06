@@ -77,7 +77,7 @@ class Root:
         self.textbox_entry.pack(padx=25,pady=(0,25),side="top", anchor="nw")
 
         self.gc_button = customtkinter.CTkButton(master=self.window, text="Smart Correct", command=self.process_string)
-        self.send_button = customtkinter.CTkButton(master=self.window, text="Send")
+        self.send_button = customtkinter.CTkButton(master=self.window, text="Send", command=self.send_message)
 
         self.gc_button.place(x=25, y=526)
         self.send_button.place(x=175, y=526)
@@ -87,10 +87,42 @@ class Root:
         self.input_string.trace_add("write",self.update_curr_from_input)
 
         # Chat Interface
+
+        self.user = tkinter.StringVar(value='User 1')
+        self.user_option = customtkinter.StringVar(value="Select User")  # set initial value
+
         self.chat_frame = customtkinter.CTkFrame(master=self.window, width=440, height=576)
+        self.chat_frame.pack_propagate(0)
         self.chat_frame.place(x=584, y=0)
+
+        combobox = customtkinter.CTkOptionMenu(master=self.chat_frame,
+                                            width = 100,
+                                            height = 40,
+                                            font = ("Helvetica", 16),
+                                            values=["User 1", "User 2"],
+                                            command=self.user_option_callback,
+                                            variable=self.user_option)
+        combobox.pack(padx=20, pady=10, side="top", anchor="ne")
+
+        #Defining the frame on the left and the right to hold the messagess.
+        self.msg_frame = customtkinter.CTkFrame(master=self.chat_frame, fg_color= "transparent", height=500)
+        self.msg_frame.pack_propagate(0)
+        self.msg_frame.pack(padx = 25, pady = (10,0), side="top", anchor="nw")
+
         # Start updating the GUI
         self.update_frame()
+
+    def user_option_callback(self,choice):
+        self.user.set(choice)
+
+    def send_message(self,event = None):
+        message = self.user.get() + ": " + self.curr_string.get()
+        if self.user.get() == "User 1":
+            user1_bubble = customtkinter.CTkLabel(self.msg_frame, text= message, width=100,fg_color=("lightgreen", "gray75"),font=("Helvetica", 12), corner_radius=10)
+            user1_bubble.pack(side="top", pady=(0,10), anchor="w")
+        else:
+            user2_bubble = customtkinter.CTkLabel(self.msg_frame, text= message, fg_color=("lightblue", "gray75"), font=("Helvetica", 12), width=100,corner_radius=10)
+            user2_bubble.pack(side="top", pady=(0,10), anchor="w")
 
     def update_input_from_curr(self, *args):
         print(args)
@@ -186,6 +218,7 @@ class Root:
         cv2.rectangle(frame, (x1-1,y1-1), (x2+1,y2+1), self.get_capture_zone_border_color() ,2)
         
         cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+        print(cv2image.shape)
 
         img = PIL.Image.fromarray(cv2image)
         imgtk = PIL.ImageTk.PhotoImage(image=img)
