@@ -22,7 +22,7 @@ class Root:
 
         # Configs for testing and debugging
         self.cv_enabled = False
-        self.sc_enabled = False
+        self.sc_enabled = True
         self.sa_enabled = True
 
         self.window = customtkinter.CTk()
