@@ -57,7 +57,7 @@ The gestures that were trained for this project are depicted in the image provid
 </div><br/>
 
 ## Running the Project
-<hr><br/>
+<hr>
 
 <div style="background-color: rgb(50, 50, 60);">
 
