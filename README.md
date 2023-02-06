@@ -6,6 +6,13 @@
 SIGNify is an AI-powered app for the hearing impaired, as part of the National AI Student Challenge 2023. SIGNify is free and utilises cutting-edge technology for real-time ASL-to-text translation, grammatical correction, and sentiment analysis. Our goal is to make a positive impact on the hearing impaired community.
 <br /><br />
 
+
+## Project Demo Link
+<hr> 
+[SIGNify Demo Video](https://www.youtube.com/watch?v=ncwKXnMxhLA)
+
+<br/>
+
 ## Project Description 
 <hr> 
 American Sign Language (ASL) is the primary form of communication for individuals who are deaf and hard of hearing (D&M). This is because their only communication-related disability is an inability to use spoken language, and thus they rely solely on sign language to communicate.<br /><br />
