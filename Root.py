@@ -5,9 +5,9 @@ import time
 from pathlib import Path
 
 import customtkinter
-import random
 
 from src.custom_nodes.model import classifier
+from sgnlp_workflow import SmartCorrect
 
 customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
@@ -18,17 +18,18 @@ class Root:
         self.capture_direction.set("Left" if self.capture_direction.get() == "Right" else "Right")
 
     def __init__(self):
-        
 
+        # Configs for texting and debugging
+        self.cv_enabled = False
+        self.sc_enabled = False
 
         self.window = customtkinter.CTk()
 
         # Create the GUI window
-        self.window.geometry("1280x720")
+        self.window.geometry("1024x576")
 
         self.curr_string = tkinter.StringVar()
-        self.processed_string = tkinter.StringVar()
-        self.raw_string = tkinter.StringVar()
+        self.input_string = tkinter.StringVar()
         self.latest_char = tkinter.StringVar()
 
         self.curr_pred_label = tkinter.StringVar()
@@ -40,7 +41,7 @@ class Root:
 
         
 
-
+        self.SC = SmartCorrect.SmartCorrect(self.sc_enabled)
 
         # Initialize the webcam
         self.webcam = cv2.VideoCapture(0)
@@ -50,7 +51,7 @@ class Root:
         self.webcam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.webcam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-        self.model_node = classifier.Node(pkd_base_dir=Path.cwd() / "src" / "custom_nodes")
+        self.model_node = classifier.Node(self.cv_enabled, pkd_base_dir=Path.cwd() / "src" / "custom_nodes")
 
 
         # Initialize the time of the last saved frame
@@ -66,15 +67,38 @@ class Root:
         self.position_button = customtkinter.CTkButton(master=self.window, textvariable=self.capture_direction, command=self.position_button_event)
         self.position_button.pack(padx=25,pady=(0,25),side="top", anchor="nw")
 
-        self.prediction_button = customtkinter.CTkButton(master=self.window, textvariable=self.curr_pred_label)
-        self.prediction_button.pack(padx=25,pady=(0,25),side="top", anchor="nw")
+        
 
-        self.textbox_label = customtkinter.CTkLabel(self.window,
-                 textvariable = self.curr_string, height=60, width=120)
-        self.textbox_label.pack(padx=25,pady=(0,25),side="top", anchor="nw")
+        self.textbox_entry = customtkinter.CTkEntry(self.window,
+                 textvariable = self.input_string, height=40, width=480, fg_color="white", border_width=2, border_color="gray50")
+        self.textbox_entry.pack(padx=25,pady=(0,25),side="top", anchor="nw")
+
+        self.gc_button = customtkinter.CTkButton(master=self.window, text="Smart Correct", command=self.process_string)
+        self.send_button = customtkinter.CTkButton(master=self.window, text="Send")
+
+        self.gc_button.place(x=25, y=526)
+        self.send_button.place(x=175, y=526)
+
+
+        # Trace curr_string
+        self.input_string.trace_add("write",self.update_curr_from_input)
 
         # Start updating the GUI
         self.update_frame()
+
+    def update_input_from_curr(self, *args):
+        print(args)
+        s = self.curr_string.get()
+        print(s)
+        self.input_string.set(s)
+        print(self.input_string.get())
+
+    def update_curr_from_input(self, *args):
+        print(args)
+        s = self.input_string.get()
+        print(s)
+        self.curr_string.set(s)
+        print(self.curr_string.get())
 
     def get_capture_zone_border_color(self):
         # BGR format
@@ -107,45 +131,39 @@ class Root:
         
         self.curr_pred_score.set('%.2f' % score)
 
-
-    '''def update_prediction(self, label, score):
-        print(self.curr_string.get())
-        if char=="" and self.latest_string.get() == " ":
-            return
-        elif char == "":
-            self.latest_string.set(" ")
-            self.curr_string.set(self.curr_string.get() + char if self.curr_string.get() else char)
-        else:
-            self.latest_string=char
-            self.curr_string.set(self.curr_string.get() + char if self.curr_string.get() else char)'''
-
-    def gc(self, raw):
-        return "<" +  raw + "/>"
+    def sc(self, raw):
+        res = self.SC.run([raw])
+        if res:
+            return res[0]
+        return raw
         
     def process_string(self):
-        self.raw_string.set(self.curr_string.get())
 
         # Grammar correction
-        self.processed_string.set(self.gc(self.curr_string.get()))
-        self.curr_string.set(self.processed_string.get())
-    
-    def toggle_raw_processed(self):
-        if self.curr_string.get() == self.raw_string.get():
-            self.curr_string.set(self.processed_string.get())
-        elif self.processed_string.get() == self.curr_string.get():
-            self.curr_string.set(self.raw_string.get())
+        processed = self.sc(self.curr_string.get())
+        self.curr_string.set(processed)
+        self.update_input_from_curr()
 
     def capture_result(self):
         if self.curr_pred_label.get() and self.curr_pred_label.get() != 'BLANK':
+            self.latest_char = self.curr_pred_label.get()
+            self.curr_string.set(self.curr_string.get() + self.latest_char)
+            self.update_input_from_curr()
             self.is_captured = True
             self.last_captured_at = time.time()
+        elif self.curr_pred_label.get():
+            if self.latest_char == ' ':
+                return
+            self.latest_char = self.curr_pred_label.get()
+            self.curr_string.set(self.curr_string.get() + self.latest_char)
+            self.update_input_from_curr()
+        else:
+            return
 
 
     def update_frame(self):
-        
         _, frame = self.webcam.read()
         frame = cv2.flip(frame, 1)
-        
         x1, y1, x2, y2 = self.get_capture_zone_position(frame.shape[1], self.capture_direction.get())
         cv2.rectangle(frame, (x1-1,y1-1), (x2+1,y2+1), self.get_capture_zone_border_color() ,2)
         
@@ -156,6 +174,7 @@ class Root:
         self.webcam_label.imgtk = imgtk
         self.webcam_label.configure(image=imgtk)
 
+
         cap_img = cv2image[y1:y2,x1:x2]
         
         self.predict(cap_img)
@@ -163,13 +182,13 @@ class Root:
 
         current_time = time.time()
         if current_time - self.last_updated_at >= 1.5:
-            
+            self.capture_result()
             self.last_updated_at = current_time
 
         if current_time - self.last_captured_at >= 0.3:
             self.is_captured = False
             
-        self.window.after(10, self.update_frame)
+        self.window.after(100, self.update_frame)
 
 
 
