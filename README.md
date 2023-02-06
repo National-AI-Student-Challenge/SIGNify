@@ -27,8 +27,6 @@ The gestures that were trained for this project are depicted in the image provid
 Here is a short demonstration of tha application:
 <br/>
 
-![Alt Text](demo.gif)
-
 <p align="center">
   <img src="demo.gif" alt="animated" />
 </p>
