@@ -107,7 +107,7 @@ while True:
     
     roi = frame[y1:y2, x1:x2]
 
-    roi = cv2.resize(roi, (128,128))
+    roi = cv2.resize(roi, (224,224))
 
     cv2.imshow("Frame", frame)
     

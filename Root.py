@@ -21,9 +21,9 @@ class Root:
     def __init__(self):
 
         # Configs for testing and debugging
-        self.cv_enabled = True
-        self.sc_enabled = True
-        self.sa_enabled = True
+        self.cv_enabled = True 
+        self.sc_enabled = False
+        self.sa_enabled = False
 
         self.window = customtkinter.CTk()
 
